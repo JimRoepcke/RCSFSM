@@ -22,9 +22,20 @@
 	return result;
 }
 
+- (NSString *)displayNameExcludedPrefix
+{
+    return nil;
+}
+
 - (NSString *)displayName
 {
-    return NSStringFromClass([self class]);
+    NSString *className = NSStringFromClass([self class]);
+    return [className substringFromIndex:[[self displayNameExcludedPrefix] length]];
+}
+
+- (BOOL)shouldLogTransitions
+{
+    return NO;
 }
 
 - (BOOL)shouldTellContextDidEnterErrorState
@@ -50,7 +61,10 @@
 
 - (void)transition:(id<RCSStateContext>)context to:(id<RCSState>)state
 {
-    // LogDebug(@"transition %@ to %@", context, [state displayName]);
+    if ([self shouldLogTransitions])
+    {
+        NSLog(@"transition %@ to %@", context, [state displayName]);
+    }
     [context setState:state];
     [state enter:context];
 }

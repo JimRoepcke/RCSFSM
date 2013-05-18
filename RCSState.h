@@ -25,7 +25,10 @@
 // access singleton instance
 + (id<RCSState>)state;
 
-- (NSString *)displayName;
+- (NSString *)displayNameExcludedPrefix; // remove this prefix from the class name to derive the default displayName
+- (NSString *)displayName; // class name, sans prefix from displayNameExcludedPrefix
+
+- (BOOL)shouldLogTransitions; // returns NO by default
 
 - (BOOL)shouldTellContextDidEnterErrorState; // returns YES by default
 - (id<RCSState>)errorState;
