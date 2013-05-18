@@ -13,6 +13,8 @@
 
 @property (nonatomic, weak) id<RCSState> state;
 
+- (void)_stateContextDidEnterErrorState;
+
 @end
 
 /*
@@ -24,6 +26,9 @@
 + (id<RCSState>)state;
 
 - (NSString *)displayName;
+
+- (BOOL)shouldTellContextDidEnterErrorState; // returns YES by default
+- (id<RCSState>)errorState;
 
 // called by transition:to: just after the context's state is set to this state
 - (void)enter:(id<RCSStateContext>)context;

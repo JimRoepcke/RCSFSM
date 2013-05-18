@@ -44,7 +44,7 @@
 // put logging or whatever other code you want here
 // the default implementation currently does nothing,
 // but it might in the future, so call super if you override it
-- (void)_error;
+- (void)_stateContextDidEnterErrorState;
 
 // standard private method to be called when a task is cancelled
 // this is called after transitioning to the cancelledState

@@ -30,6 +30,11 @@
     return (id<RCSTaskState>)[super state];
 }
 
+- (id<RCSTaskState>)errorState
+{
+    return [RCSTaskStateError state];
+}
+
 - (NSString *)displayName
 {
     NSString *className = NSStringFromClass([self class]);
@@ -91,12 +96,6 @@
  */
 
 @implementation RCSTaskStateError
-
-- (void)enter:(RCSTask *)task
-{
-    [super enter:task];
-    [task _error];
-}
 
 @end
 

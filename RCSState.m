@@ -27,8 +27,25 @@
     return NSStringFromClass([self class]);
 }
 
+- (BOOL)shouldTellContextDidEnterErrorState
+{
+    return YES;
+}
+
+- (id<RCSState>)errorState
+{
+    return nil;
+}
+
 - (void)enter:(id<RCSStateContext>)context
 {
+    if ([self errorState] == self)
+    {
+        if ([self shouldTellContextDidEnterErrorState])
+        {
+            [context _stateContextDidEnterErrorState];
+        }
+    }
 }
 
 - (void)transition:(id<RCSStateContext>)context to:(id<RCSState>)state

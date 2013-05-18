@@ -182,15 +182,15 @@
     }
 }
 
-@end
-
-@implementation RCSTaskQueue (RCSTaskQueueStatePrivate)
-
-- (void)_error
+- (void)_stateContextDidEnterErrorState
 {
     // this is called when the Error state is entered
     // FIXME: add logging here
 }
+
+@end
+
+@implementation RCSTaskQueue (RCSTaskQueueStatePrivate)
 
 - (RCSTask *)_head
 {
