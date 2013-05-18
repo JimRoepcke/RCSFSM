@@ -9,7 +9,7 @@
 /*
  * An object that has a FSM.
  */
-@protocol RCSStateContext
+@protocol RCSStateContext <NSObject>
 
 @property (nonatomic, weak) id<RCSState> state;
 
