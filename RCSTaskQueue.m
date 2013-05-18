@@ -6,11 +6,31 @@
 
 #import "RCSTaskQueue.h"
 
+@interface RCSTaskQueueState (Transitions)
+
+- (void)wake:(RCSTaskQueue *)taskQueue;
+
+- (void)taskQueue:(RCSTaskQueue *)taskQueue enqueueTask:(RCSTask *)task;
+
+- (void)taskQueue:(RCSTaskQueue *)taskQueue taskCancelled:(RCSTask *)task;
+
+- (void)taskQueue:(RCSTaskQueue *)taskQueue dequeueTask:(RCSTask *)task;
+
+- (void)empty:(RCSTaskQueue *)taskQueue;
+
+- (void)pause:(RCSTaskQueue *)taskQueue;
+- (void)resume:(RCSTaskQueue *)taskQueue;
+
+- (void)background:(RCSTaskQueue *)taskQueue;
+- (void)foreground:(RCSTaskQueue *)taskQueue;
+
+@end
+
 @implementation RCSTaskQueue
 {
     // these ivars back properties
     id<RCSTaskQueueDelegate> __weak _delegate;
-    id<RCSTaskQueueState> __weak _state;
+    RCSTaskQueueState __weak *_state;
 
     // these ivars do not back properties
     NSMutableArray *_tasks;
@@ -30,15 +50,58 @@
     _currentTask = nil;
 }
 
++ (void)initialize
+{
+    if (self == [RCSTaskQueue class])
+    {
+        id<RCSState> Base = [RCSTaskQueueState state];
+        id<RCSState> Empty = [Base stateNamed:@"Empty"];
+        id<RCSState> NotEmpty = [Base stateNamed:@"NotEmpty"];
+        id<RCSState> PausedEmpty = [Base stateNamed:@"PausedEmpty"];
+        id<RCSState> PausedNotEmpty = [Base stateNamed:@"PausedNotEmpty"];
+        id<RCSState> BackgroundedNotEmpty = [Base stateNamed:@"BackgroundedNotEmpty"];
+
+        SEL taskQueueEnqueueTask = [Base transitionToErrorStateWhen:@selector(taskQueue:enqueueTask:)];
+        SEL taskQueueTaskCancelled = [Base transitionToErrorStateWhen:@selector(taskQueue:taskCancelled:)];
+        SEL taskQueueDequeueTask = [Base transitionToErrorStateWhen:@selector(taskQueue:dequeueTask:)];
+        SEL empty = [Base transitionToErrorStateWhen:@selector(empty:)];
+        SEL pause = [Base transitionToErrorStateWhen:@selector(pause:)];
+        SEL resume = [Base transitionToErrorStateWhen:@selector(resume:)];
+        SEL background = [Base doNothingWhen:@selector(background:)];
+        SEL foreground = [Base doNothingWhen:@selector(foreground:)];
+        SEL wake = [Base when:@selector(wake:) perform:@selector(_wake)];
+
+        [Empty when:taskQueueEnqueueTask transitionTo:NotEmpty before:@selector(_start) after:@selector(_enqueueTask:)];
+        [Empty when:pause transitionTo:PausedEmpty];
+
+        [PausedEmpty when:taskQueueEnqueueTask transitionTo:PausedNotEmpty after:@selector(_enqueueTask:)];
+        [PausedEmpty when:resume transitionTo:Empty];
+
+        [NotEmpty when:empty transitionTo:Empty];
+        [NotEmpty when:taskQueueEnqueueTask perform:@selector(_enqueueTask)];
+        [NotEmpty when:taskQueueTaskCancelled perform:@selector(_taskCancelled:)];
+        [NotEmpty when:taskQueueDequeueTask perform:@selector(_dequeue)];
+        [NotEmpty when:pause transitionTo:PausedNotEmpty after:@selector(_pause)];
+        [NotEmpty when:background transitionTo:BackgroundedNotEmpty after:@selector(_background)];
+
+        [PausedNotEmpty when:empty transitionTo:PausedEmpty];
+        [PausedNotEmpty when:taskQueueEnqueueTask perform:@selector(_enqueueTask:)];
+        [PausedNotEmpty when:taskQueueTaskCancelled perform:@selector(_taskCancelled:)];
+        [PausedNotEmpty when:resume transitionTo:NotEmpty before:@selector(_resume)];
+
+        [BackgroundedNotEmpty when:wake transitionTo:NotEmpty before:@selector(_wake)];
+        [BackgroundedNotEmpty when:foreground transitionTo:NotEmpty before:@selector(_foreground)];
+    }
+}
+
 - (id)initWithDelegate:(id<RCSTaskQueueDelegate>)delegate
 {
     self = [super init];
     if (self)
     {
         _delegate = delegate;
-        _state = [RCSTaskQueueStateEmpty state];
+        _state = [[RCSTaskQueueState state] startState];
         _tasks = [NSMutableArray new];
-        RCSLogFSRCSnitialized(self);
     }
     return self;
 }
@@ -80,7 +143,6 @@
                 _currentTask = [_tasks objectAtIndex:idx];
             }
         }
-        RCSLogFSRCSnitialized(self);
     }
     return self;
 }
@@ -113,13 +175,13 @@
 
 - (void)taskCancelled:(RCSTask *)task
 {
-    [self.state taskCancelled:task forTaskQueue:self];
+    [self.state taskQueue:self taskCancelled:task];
     [self.delegate taskQueue:self didCancelTask:task];
 }
 
 - (void)taskCompleted:(RCSTask *)task
 {
-    [self.state dequeueTask:task forTaskQueue:self];
+    [self.state taskQueue:self dequeueTask:task];
     [self.delegate taskQueue:self didCompleteTask:task];
 }
 
@@ -149,7 +211,7 @@
 
 - (void)enqueueTask:(RCSTask *)task
 {
-    [self.state enqueueTask:task forTaskQueue:self];
+    [self.state taskQueue:self enqueueTask:task];
 }
 
 - (void)pause
@@ -207,14 +269,15 @@
 
 - (void)_enqueueTask:(RCSTask *)task
 {
+    [task pause];
     [_tasks addObject:task];
-    RCSLogFSMOwnsFSM(self, task);
     task.delegate = self;
 }
 
 - (void)_start
 {
     _currentTask = [self _head];
+    [_currentTask resume];
     [_currentTask start];
 }
 
@@ -258,6 +321,10 @@
     {
         [self _start];
     }
+    if ([self _isEmpty])
+    {
+        [self.state empty:self];
+    }
 }
 
 - (BOOL)_isEmpty
@@ -281,6 +348,23 @@
 - (void)_dequeue
 {
     [self _removeTask:[self _head]];
+    if ([self _isEmpty])
+    {
+        [self.state empty:self];
+    }
+    else
+    {
+        [self _start];
+    }
+}
+
+@end
+
+@implementation RCSTaskQueueState
+
++ (RCSTaskQueueState *)state
+{
+    return (RCSTaskQueueState *)[super state];
 }
 
 @end

@@ -24,6 +24,7 @@
 
 // access singleton instance
 + (id<RCSState>)state;
+- (id<RCSState>)startState;
 
 - (NSString *)displayNameExcludedPrefix; // remove this prefix from the class name to derive the default displayName
 - (NSString *)displayName; // class name, sans prefix from displayNameExcludedPrefix
@@ -41,6 +42,19 @@
 
 // call this before transitioning to your FSM's Error state
 - (void)logStateTransitionError:(SEL)sel forContext:(id<RCSStateContext>)context;
+
+- (id<RCSState>)stateNamed:(NSString *)name;
+- (id<RCSState>)declareErrorState:(id<RCSState>)errorState;
+- (id<RCSState>)declareStartState:(id<RCSState>)startState;
+
+- (SEL)transitionToErrorStateWhen:(SEL)selector;
+- (void)whenEnteringPerform:(SEL)action;
+- (SEL)doNothingWhen:(SEL)selector;
+- (SEL)when:(SEL)selector perform:(SEL)action;
+- (SEL)when:(SEL)selector transitionTo:(id<RCSState>)state;
+- (SEL)when:(SEL)selector transitionTo:(id<RCSState>)state after:(SEL)action;
+- (SEL)when:(SEL)selector transitionTo:(id<RCSState>)state before:(SEL)action;
+- (SEL)when:(SEL)selector transitionTo:(id<RCSState>)state before:(SEL)postAction after:(SEL)preAction;
 
 @end
 

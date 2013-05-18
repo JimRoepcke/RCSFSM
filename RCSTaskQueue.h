@@ -5,7 +5,6 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "RCSTaskQueueState.h"
 #import "RCSTask.h"
 
 @class RCSTaskQueue;
@@ -18,13 +17,19 @@
 
 @end
 
+@interface RCSTaskQueueState : RCSBaseState
+
++ (RCSTaskQueueState *)state;
+
+@end
+
 // this is an abstract class
 // it must be subclasses and taskWithDictionaryRepresentation: must be overridden
 
 @interface RCSTaskQueue : NSObject <RCSStateContext, RCSTaskDelegate>
 
 @property (nonatomic, weak) id<RCSTaskQueueDelegate> delegate;
-@property (nonatomic, weak) id<RCSTaskQueueState> state;
+@property (nonatomic, weak) RCSTaskQueueState *state;
 @property (nonatomic, readonly, assign) NSUInteger numberOfTasks;
 @property (nonatomic, readonly, copy) NSArray *tasks;
 

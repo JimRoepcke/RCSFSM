@@ -5,7 +5,7 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "RCSTaskState.h"
+#import "RCSState.h"
 
 @class RCSTask;
 
@@ -17,15 +17,17 @@
 
 @end
 
+@interface RCSTaskState : RCSBaseState
+
++ (RCSTaskState *)state;
+
+@end
+
 @interface RCSTask : NSObject <RCSStateContext>
 
 @property (nonatomic, readonly, copy) NSString *taskID;
 @property (nonatomic, readwrite, weak) id<RCSTaskDelegate> delegate;
-@property (nonatomic, readwrite, weak) id<RCSTaskState> state;
-
-- (RCSTaskState *)errorState; // returns [RCSTaskStateError state]
-- (RCSTaskState *)cancelledState; // returns [RCSTaskStateCancelled state]
-- (RCSTaskState *)startState; // returns [RCSTaskStateStart state]
+@property (nonatomic, readwrite, weak) RCSTaskState *state;
 
 - (id)initWithDictionaryRepresentation:(NSDictionary *)dict;
 - (NSMutableDictionary *)mutableDictionaryRepresentation;

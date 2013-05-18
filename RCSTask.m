@@ -6,6 +6,21 @@
 
 #import "RCSTask.h"
 
+@interface RCSTaskState (Transitions)
+
+- (void)error:(RCSTask *)task;
+- (void)cancel:(RCSTask *)task;
+- (void)start:(RCSTask *)task;
+- (void)wake:(RCSTask *)task;
+
+- (void)pause:(RCSTask *)task;
+- (void)resume:(RCSTask *)task;
+
+- (void)foreground:(RCSTask *)task;
+- (void)background:(RCSTask *)task;
+
+@end
+
 @interface RCSTask ()
 
 @property (nonatomic, readonly, assign) NSUInteger maximumNumberOfAttempts;
@@ -17,13 +32,35 @@
 {
     NSString *_taskID;
     id<RCSTaskDelegate> __weak _delegate;
-    id<RCSTaskState> __weak _state;
+    RCSTaskState __weak *_state;
     NSUInteger _maximumNumberOfAttempts;
     NSUInteger _numberOfAttempts;
 }
 
 @synthesize taskID = _taskID;
 @synthesize delegate = _delegate;
+
++ (void)initialize
+{
+    if (self == [RCSTask class])
+    {
+        id<RCSState> Base = [RCSTaskState state];
+        id<RCSState> Error = [Base declareErrorState:[Base stateNamed:@"Error"]];
+        id<RCSState> Cancelled = [Base stateNamed:@"Cancelled"];
+        [Base declareStartState:[Base stateNamed:@"Start"]];
+
+        [Base when:@selector(error:) transitionTo:Error];
+        [Base when:@selector(cancel:) transitionTo:Cancelled];
+        [Base transitionToErrorStateWhen:@selector(start:)];
+        [Base doNothingWhen:@selector(wake:)];
+        [Base transitionToErrorStateWhen:@selector(pause:)];
+        [Base transitionToErrorStateWhen:@selector(resume:)];
+        [Base doNothingWhen:@selector(foreground:)];
+        [Base doNothingWhen:@selector(background:)];
+
+        [Cancelled whenEnteringPerform:@selector(_cancelled)];
+    }
+}
 
 - (void)dealloc
 {
@@ -37,9 +74,8 @@
     if (self)
     {
         _taskID = [[self __uuidString] copy];
-        _state = [self startState];
+        _state = [[RCSTaskState state] startState];
         _maximumNumberOfAttempts = 5;
-        RCSLogFSRCSnitialized(self);
     }
     return self;
 }
@@ -54,7 +90,6 @@
         _state = (RCSTaskState *)[stateClass state];
         _maximumNumberOfAttempts = 5; // don't restore, in case this has changed between versions
         // don't restore numberOfAttempts, effectively resetting it to zero
-        RCSLogFSRCSnitialized(self);
     }
     return self;
 }
@@ -76,21 +111,6 @@
     NSString *result = (__bridge_transfer NSString *)CFUUIDCreateString(kCFAllocatorDefault, uuid);
     CFRelease(uuid);
     return result;
-}
-
-- (RCSTaskState *)errorState
-{
-    return [RCSTaskStateError state];
-}
-
-- (RCSTaskState *)cancelledState
-{
-    return [RCSTaskStateCancelled state];
-}
-
-- (RCSTaskState *)startState
-{
-    return [RCSTaskStateStart state];
 }
 
 - (void)cancel
@@ -179,6 +199,15 @@
             [self _exhaustedAttempts];
         }
     }
+}
+
+@end
+
+@implementation RCSTaskState
+
++ (RCSTaskState *)state
+{
+    return (RCSTaskState *)[super state];
 }
 
 @end
