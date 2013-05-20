@@ -137,7 +137,7 @@ static NSUInteger RCSNumberOfArgumentsInSelector(SEL sel)
 
 - (void)whenEnteringPerform:(SEL)action
 {
-    if (action && (RCSNumberOfArgumentsInSelector(action) == 1))
+    if (action && (RCSNumberOfArgumentsInSelector(action) == 0))
     {
         IMP imp = imp_implementationWithBlock(^(id<RCSState> _self, id<RCSStateContext> context) {
             struct objc_super objcSuper = {_self, [_self superclass]};
