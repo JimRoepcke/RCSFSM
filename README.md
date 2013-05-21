@@ -10,7 +10,7 @@ Better documentation will be provided as time allows, for now, here is a brief d
 
 This code requires ARC and is known to work with iOS 5.x and later in Xcode 4.5 and later.
 
-## RCSState
+## &lt;RCSState&gt; protocol
 
 Represents a state in a FSM.
 
