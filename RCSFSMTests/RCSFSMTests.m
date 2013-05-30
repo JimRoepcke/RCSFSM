@@ -67,11 +67,11 @@
     if (self == [RCSFSMTests class])
     {
         id <RCSState> Base = [TestState state];
-        id <RCSState> Error = [[TestState state] stateNamed:@"Error"];
-        id <RCSState> Start = [[TestState state] stateNamed:@"Start"];
-        id <RCSState> Running = [[TestState state] stateNamed:@"Running"];
-        id <RCSState> StateA = [[TestState state] stateNamed:@"StateA"];
-        id <RCSState> StateB = [[TestState state] stateNamed:@"StateB"];
+        id <RCSState> Error = [Base stateNamed:@"Error"];
+        id <RCSState> Start = [Base stateNamed:@"Start"];
+        id <RCSState> Running = [Base stateNamed:@"Running"];
+        id <RCSState> StateA = [Base stateNamed:@"StateA"];
+        id <RCSState> StateB = [Base stateNamed:@"StateB"];
 
         [Base declareErrorState:Error];
         [Base declareStartState:Start];
