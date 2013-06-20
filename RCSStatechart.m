@@ -252,6 +252,10 @@ static NSUInteger RCSNumberOfArgumentsInSelector(SEL sel)
 - (void)pop:(id<RCSStatechartContext>)context
 {
     id<RCSStatechart> state = [context popStatechart];
+    if ([self shouldLogTransitions])
+    {
+        NSLog(@"transition %@ pop %@", context, [state displayName]);
+    }
     [context setStatechart:state];
     [state enter:context];
 }
