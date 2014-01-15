@@ -11,7 +11,7 @@
 
 @protocol RCSTaskQueueDelegate <NSObject>
 
-- (void)taskQueue:(RCSTaskQueue *)queue didCancelTask:(RCSTask *)task;
+- (void)taskQueue:(RCSTaskQueue *)queue didCancelRCSTask:(RCSTask *)task;
 - (void)taskQueue:(RCSTaskQueue *)queue didCompleteTask:(RCSTask *)task;
 - (void)taskQueueDidPauseDueToExhaustedAttempts:(RCSTaskQueue *)queue;
 

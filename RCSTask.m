@@ -9,7 +9,7 @@
 @interface RCSTaskState (Transitions)
 
 - (void)error:(RCSTask *)task;
-- (void)cancelTask:(RCSTask *)task;
+- (void)cancelRCSTask:(RCSTask *)task;
 - (void)start:(RCSTask *)task;
 - (void)wake:(RCSTask *)task;
 
@@ -50,7 +50,7 @@
         [Base declareStartState:[Base stateNamed:@"Start"]];
 
         [Base when:@selector(error:) transitionTo:Error];
-        [Base when:@selector(cancelTask:) transitionTo:Cancelled];
+        [Base when:@selector(cancelRCSTask:) transitionTo:Cancelled];
         [Base transitionToErrorStateWhen:@selector(start:)];
         [Base doNothingWhen:@selector(wake:)];
         [Base transitionToErrorStateWhen:@selector(pause:)];
@@ -115,7 +115,7 @@
 
 - (void)cancel
 {
-    [self.state cancelTask:self];
+    [self.state cancelRCSTask:self];
 }
 
 - (void)start
