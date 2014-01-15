@@ -9,12 +9,12 @@
 @interface RCSTaskState (Transitions)
 
 - (void)error:(RCSTask *)task;
-- (void)cancel:(RCSTask *)task;
+- (void)cancelTask:(RCSTask *)task;
 - (void)start:(RCSTask *)task;
 - (void)wake:(RCSTask *)task;
 
 - (void)pause:(RCSTask *)task;
-- (void)resume:(RCSTask *)task;
+- (void)resumeTask:(RCSTask *)task;
 
 - (void)foreground:(RCSTask *)task;
 - (void)background:(RCSTask *)task;
@@ -50,11 +50,11 @@
         [Base declareStartState:[Base stateNamed:@"Start"]];
 
         [Base when:@selector(error:) transitionTo:Error];
-        [Base when:@selector(cancel:) transitionTo:Cancelled];
+        [Base when:@selector(cancelTask:) transitionTo:Cancelled];
         [Base transitionToErrorStateWhen:@selector(start:)];
         [Base doNothingWhen:@selector(wake:)];
         [Base transitionToErrorStateWhen:@selector(pause:)];
-        [Base transitionToErrorStateWhen:@selector(resume:)];
+        [Base transitionToErrorStateWhen:@selector(resumeTask:)];
         [Base doNothingWhen:@selector(foreground:)];
         [Base doNothingWhen:@selector(background:)];
 
@@ -115,7 +115,7 @@
 
 - (void)cancel
 {
-    [self.state cancel:self];
+    [self.state cancelTask:self];
 }
 
 - (void)start
@@ -135,7 +135,7 @@
 
 - (void)resume
 {
-    [self.state resume:self];
+    [self.state resumeTask:self];
 }
 
 - (void)background

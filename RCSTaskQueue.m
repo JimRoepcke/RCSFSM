@@ -19,7 +19,7 @@
 - (void)empty:(RCSTaskQueue *)taskQueue;
 
 - (void)pause:(RCSTaskQueue *)taskQueue;
-- (void)resume:(RCSTaskQueue *)taskQueue;
+- (void)resumeTaskQueue:(RCSTaskQueue *)taskQueue;
 
 - (void)background:(RCSTaskQueue *)taskQueue;
 - (void)foreground:(RCSTaskQueue *)taskQueue;
@@ -66,7 +66,7 @@
         SEL taskQueueDequeueTask = [Base transitionToErrorStateWhen:@selector(taskQueue:dequeueTask:)];
         SEL empty = [Base transitionToErrorStateWhen:@selector(empty:)];
         SEL pause = [Base transitionToErrorStateWhen:@selector(pause:)];
-        SEL resume = [Base transitionToErrorStateWhen:@selector(resume:)];
+        SEL resume = [Base transitionToErrorStateWhen:@selector(resumeTaskQueue:)];
         SEL background = [Base doNothingWhen:@selector(background:)];
         SEL foreground = [Base doNothingWhen:@selector(foreground:)];
         SEL wake = [Base when:@selector(wake:) perform:@selector(_wake)];
@@ -221,7 +221,7 @@
 
 - (void)resume
 {
-    [self.state resume:self];
+    [self.state resumeTaskQueue:self];
 }
 
 - (void)background
