@@ -14,10 +14,12 @@
 
 @property (nonatomic, weak) id<RCSPushdownState> state;
 
-- (void)_stateContextDidEnterErrorState;
-
 - (id<RCSPushdownState>)pushState;
 - (id<RCSPushdownState>)popState;
+
+@optional
+
+- (void)stateContextDidEnterErrorState;
 
 @end
 
@@ -32,7 +34,6 @@
 
 - (BOOL)shouldLogTransitions; // returns NO by default
 
-- (BOOL)shouldTellContextDidEnterErrorState; // returns YES by default
 - (id<RCSPushdownState>)errorState;
 
 // called by transition:to: just after the context's state is set to this state

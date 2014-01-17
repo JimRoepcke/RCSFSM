@@ -64,11 +64,6 @@ static NSUInteger RCSNumberOfArgumentsInSelector(SEL sel)
     return NO;
 }
 
-- (BOOL)shouldTellContextDidEnterErrorState
-{
-    return YES;
-}
-
 - (id<RCSPushdownState>)errorState
 {
     return nil;
@@ -76,12 +71,9 @@ static NSUInteger RCSNumberOfArgumentsInSelector(SEL sel)
 
 - (void)enter:(id<RCSPushdownStateContext>)context
 {
-    if ([self errorState] == self)
+    if (([self errorState] == self) && [context respondsToSelector:@selector(stateContextDidEnterErrorState)])
     {
-        if ([self shouldTellContextDidEnterErrorState])
-        {
-            [context _stateContextDidEnterErrorState];
-        }
+        [context stateContextDidEnterErrorState];
     }
 }
 

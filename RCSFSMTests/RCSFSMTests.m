@@ -63,7 +63,7 @@
     return self;
 }
 
-- (void)_stateContextDidEnterErrorState
+- (void)stateContextDidEnterErrorState
 {
     [NSException raise:NSInternalInconsistencyException format:@"TestContext did enter error state"];
 }
@@ -106,7 +106,7 @@
     self.enteredSubA = YES;
 }
 
-- (void)_stateContextDidEnterErrorState
+- (void)stateContextDidEnterErrorState
 {
     [NSException raise:NSInternalInconsistencyException format:@"TestPushdownStateContext did enter error PushdownState"];
 }
@@ -200,7 +200,7 @@
 {
     [_ctx.state start:_ctx];
     // the Running state doesn't implement the start: transition, so it should run the base implementation with transitions to Error
-    // the context class implements _stateContextDidEnterErrorState which throws an exception
+    // the context class implements stateContextDidEnterErrorState which throws an exception
     STAssertThrows([_ctx.state start:_ctx], @"start from Running should transition to error state, which should throw an exception");
 }
 

@@ -244,7 +244,7 @@
     }
 }
 
-- (void)_stateContextDidEnterErrorState
+- (void)stateContextDidEnterErrorState
 {
     // this is called when the Error state is entered
     // FIXME: add logging here
