@@ -16,7 +16,7 @@
 
 @end
 
-@interface TestStatechart : RCSBaseStatechart
+@interface TestPushdownState : RCSBasePushdownState
 
 @end
 
@@ -24,7 +24,7 @@
 
 @end
 
-@implementation TestStatechart
+@implementation TestPushdownState
 
 @end
 
@@ -43,10 +43,10 @@
 @end
 
 
-@interface TestChartContext : NSObject <RCSStatechartContext>
+@interface TestPushdownStateContext : NSObject <RCSPushdownStateContext>
 
-@property (nonatomic, weak) TestStatechart *statechart;
-@property (nonatomic, strong) NSMutableArray *statechartStack;
+@property (nonatomic, weak) TestPushdownState *state;
+@property (nonatomic, strong) NSMutableArray *pushdownStack;
 @property (nonatomic, assign) BOOL enteredSubA;
 
 @end
@@ -75,29 +75,29 @@
 
 @end
 
-@implementation TestChartContext
+@implementation TestPushdownStateContext
 
 - (id)init
 {
     self = [super init];
     if (self) {
-        _statechart = [[TestStatechart statechart] startStatechart];
-        _statechartStack = [NSMutableArray new];
+        _state = [[TestPushdownState state] startState];
+        _pushdownStack = [NSMutableArray new];
     }
     return self;
 }
 
-- (id<RCSStatechart>)pushStatechart
+- (id<RCSPushdownState>)pushState
 {
-    id<RCSStatechart> result = self.statechart;
-    if (result) [_statechartStack addObject:result];
+    id<RCSPushdownState> result = self.state;
+    if (result) [_pushdownStack addObject:result];
     return result;
 }
 
-- (id<RCSStatechart>)popStatechart
+- (id<RCSPushdownState>)popState
 {
-    id<RCSStatechart> result = [_statechartStack lastObject];
-    if (result) [_statechartStack removeLastObject];
+    id<RCSPushdownState> result = [_pushdownStack lastObject];
+    if (result) [_pushdownStack removeLastObject];
     return result;
 }
 
@@ -106,9 +106,9 @@
     self.enteredSubA = YES;
 }
 
-- (void)_statechartContextDidEnterErrorStatechart
+- (void)_stateContextDidEnterErrorState
 {
-    [NSException raise:NSInternalInconsistencyException format:@"TestChartContext did enter error statechart"];
+    [NSException raise:NSInternalInconsistencyException format:@"TestPushdownStateContext did enter error PushdownState"];
 }
 
 @end
@@ -116,7 +116,7 @@
 @implementation RCSFSMTests
 {
     TestContext *_ctx;
-    TestChartContext *_chartCtx;
+    TestPushdownStateContext *_pushdownStateCtx;
 }
 
 + (void)initialize
@@ -140,16 +140,16 @@
 
         [StateA whenEnteringPerform:@selector(_enteringStateA)];
 
-        id <RCSStatechart> ChartBase = [TestStatechart statechart];
-        id <RCSStatechart> ChartError = [ChartBase statechartNamed:@"Error"];
-        id <RCSStatechart> ChartStart = [ChartBase statechartNamed:@"Start"];
+        id <RCSPushdownState> PushdownStateBase = [TestPushdownState state];
+        id <RCSPushdownState> PushdownStateError = [PushdownStateBase stateNamed:@"Error"];
+        id <RCSPushdownState> PushdownStateStart = [PushdownStateBase stateNamed:@"Start"];
 
-        id <RCSStatechart> ChartSubA = [ChartBase statechartNamed:@"SubA"];
+        id <RCSPushdownState> PushdownStateSubA = [PushdownStateBase stateNamed:@"SubA"];
 
-        [ChartBase declareErrorStatechart:ChartError];
-        [ChartBase declareStartStatechart:ChartStart];
+        [PushdownStateBase declareErrorState:PushdownStateError];
+        [PushdownStateBase declareStartState:PushdownStateStart];
 
-        [ChartSubA whenEnteringPerform:@selector(_enteringSubA)];
+        [PushdownStateSubA whenEnteringPerform:@selector(_enteringSubA)];
     }
 }
 
@@ -157,13 +157,13 @@
 {
     [super setUp];
     _ctx = [[TestContext alloc] init];
-    _chartCtx = [[TestChartContext alloc] init];
+    _pushdownStateCtx = [[TestPushdownStateContext alloc] init];
 }
 
 - (void)tearDown
 {
     // Tear-down code here.
-    _chartCtx = nil;
+    _pushdownStateCtx = nil;
     _ctx = nil;
     [super tearDown];
 }
@@ -211,21 +211,21 @@
     STAssertTrue(_ctx.enteredStateA, nil);
 }
 
-- (void)testChartPush
+- (void)testPush
 {
-    [_chartCtx.statechart transition:_chartCtx push:[[TestStatechart statechart] statechartNamed:@"SubA"]];
-    STAssertEquals(_chartCtx.statechart, [[TestStatechart statechart] statechartNamed:@"SubA"], nil);
-    STAssertEquals([_chartCtx.statechartStack count], (NSUInteger)1, nil);
-    STAssertEquals([_chartCtx.statechartStack lastObject], [[TestStatechart statechart] startStatechart], nil);
-    STAssertTrue(_chartCtx.enteredSubA, nil);
+    [_pushdownStateCtx.state transition:_pushdownStateCtx push:[[TestPushdownState state] stateNamed:@"SubA"]];
+    STAssertEquals(_pushdownStateCtx.state, [[TestPushdownState state] stateNamed:@"SubA"], nil);
+    STAssertEquals([_pushdownStateCtx.pushdownStack count], (NSUInteger)1, nil);
+    STAssertEquals([_pushdownStateCtx.pushdownStack lastObject], [[TestPushdownState state] startState], nil);
+    STAssertTrue(_pushdownStateCtx.enteredSubA, nil);
 }
 
-- (void)testChartPop
+- (void)testPop
 {
-    [_chartCtx.statechart transition:_chartCtx push:[[TestStatechart statechart] statechartNamed:@"SubA"]];
-    [_chartCtx.statechart pop:_chartCtx];
-    STAssertEquals([_chartCtx.statechartStack count], (NSUInteger)0, nil);
-    STAssertEquals(_chartCtx.statechart, [[TestStatechart statechart] startStatechart], nil);
+    [_pushdownStateCtx.state transition:_pushdownStateCtx push:[[TestPushdownState state] stateNamed:@"SubA"]];
+    [_pushdownStateCtx.state pop:_pushdownStateCtx];
+    STAssertEquals([_pushdownStateCtx.pushdownStack count], (NSUInteger)0, nil);
+    STAssertEquals(_pushdownStateCtx.state, [[TestPushdownState state] startState], nil);
 }
 
 @end

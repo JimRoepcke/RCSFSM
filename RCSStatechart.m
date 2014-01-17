@@ -1,5 +1,5 @@
 //
-//  RCSStatechart.m
+//  RCSPushdownState.m
 //  RCSFSM
 //
 //  Created by Jim Roepcke on 2013-05-29.
@@ -30,11 +30,11 @@ static NSUInteger RCSNumberOfArgumentsInSelector(SEL sel)
     return counter;
 }
 
-@implementation RCSBaseStatechart
+@implementation RCSBasePushdownState
 
-+ (id)statechart
++ (id)state
 {
-	id<RCSStatechart> result = objc_getAssociatedObject(self, @"sharedInstance");
+	id<RCSPushdownState> result = objc_getAssociatedObject(self, @"sharedInstance");
 	if (!result)
     {
 		result = [[[self class] alloc] init];
@@ -43,7 +43,7 @@ static NSUInteger RCSNumberOfArgumentsInSelector(SEL sel)
 	return result;
 }
 
-- (id<RCSStatechart>)startStatechart
+- (id<RCSPushdownState>)startState
 {
     return nil;
 }
@@ -64,43 +64,43 @@ static NSUInteger RCSNumberOfArgumentsInSelector(SEL sel)
     return NO;
 }
 
-- (BOOL)shouldTellContextDidEnterErrorStatechart
+- (BOOL)shouldTellContextDidEnterErrorState
 {
     return YES;
 }
 
-- (id<RCSStatechart>)errorStatechart
+- (id<RCSPushdownState>)errorState
 {
     return nil;
 }
 
-- (void)enter:(id<RCSStatechartContext>)context
+- (void)enter:(id<RCSPushdownStateContext>)context
 {
-    if ([self errorStatechart] == self)
+    if ([self errorState] == self)
     {
-        if ([self shouldTellContextDidEnterErrorStatechart])
+        if ([self shouldTellContextDidEnterErrorState])
         {
-            [context _statechartContextDidEnterErrorStatechart];
+            [context _stateContextDidEnterErrorState];
         }
     }
 }
 
-- (void)transition:(id<RCSStatechartContext>)context to:(id<RCSStatechart>)statechart
+- (void)transition:(id<RCSPushdownStateContext>)context to:(id<RCSPushdownState>)state
 {
     if ([self shouldLogTransitions])
     {
-        NSLog(@"transition %@ to %@", context, [statechart displayName]);
+        NSLog(@"transition %@ to %@", context, [state displayName]);
     }
-    [context setStatechart:statechart];
-    [statechart enter:context];
+    [context setState:state];
+    [state enter:context];
 }
 
-- (void)logStateTransitionError:(SEL)sel forContext:(id<RCSStatechartContext>)context
+- (void)logStateTransitionError:(SEL)sel forContext:(id<RCSPushdownStateContext>)context
 {
     NSLog(@"%@(%@): %@ is not a supported request", context, [self displayName], NSStringFromSelector(sel));
 }
 
-- (id<RCSStatechart>)statechartNamed:(NSString *)name
+- (id<RCSPushdownState>)stateNamed:(NSString *)name
 {
     NSString *baseName = NSStringFromClass([self class]);
     NSString *statechartClassName = [baseName stringByAppendingString:name];
@@ -110,38 +110,38 @@ static NSUInteger RCSNumberOfArgumentsInSelector(SEL sel)
         statechartClass = objc_allocateClassPair([self class], [statechartClassName cStringUsingEncoding:NSASCIIStringEncoding], 0);
         objc_registerClassPair(statechartClass);
     }
-    return [statechartClass statechart];
+    return [statechartClass state];
 }
 
-- (id<RCSStatechart>)declareErrorStatechart:(id<RCSStatechart>)errorStatechart
+- (id<RCSPushdownState>)declareErrorState:(id<RCSPushdownState>)errorState
 {
-    if (errorStatechart)
+    if (errorState)
     {
-        IMP imp = imp_implementationWithBlock(^(id<RCSStatechart> _self) {
-            return errorStatechart;
+        IMP imp = imp_implementationWithBlock(^(id<RCSPushdownState> _self) {
+            return errorState;
         });
-        class_addMethod([self class], @selector(errorStatechart), imp, "v@:");
+        class_addMethod([self class], @selector(errorState), imp, "v@:");
     }
-    return errorStatechart;
+    return errorState;
 }
 
-- (id<RCSStatechart>)declareStartStatechart:(id<RCSStatechart>)startStatechart
+- (id<RCSPushdownState>)declareStartState:(id<RCSPushdownState>)startState
 {
-    if (startStatechart)
+    if (startState)
     {
-        IMP imp = imp_implementationWithBlock(^(id<RCSStatechart> _self) {
-            return startStatechart;
+        IMP imp = imp_implementationWithBlock(^(id<RCSPushdownState> _self) {
+            return startState;
         });
-        class_addMethod([self class], @selector(startStatechart), imp, "v@:");
+        class_addMethod([self class], @selector(startState), imp, "v@:");
     }
-    return startStatechart;
+    return startState;
 }
 
 - (void)whenEnteringPerform:(SEL)action
 {
     if (action && (RCSNumberOfArgumentsInSelector(action) == 0))
     {
-        IMP imp = imp_implementationWithBlock(^(id<RCSStatechart> _self, id<RCSStatechartContext> context) {
+        IMP imp = imp_implementationWithBlock(^(id<RCSPushdownState> _self, id<RCSPushdownStateContext> context) {
             struct objc_super objcSuper = {_self, [_self superclass]};
             objc_msgSendSuper(&objcSuper, @selector(enter:), context);
             objc_msgSend(context, action);
@@ -150,16 +150,16 @@ static NSUInteger RCSNumberOfArgumentsInSelector(SEL sel)
     }
 }
 
-- (SEL)transitionToErrorStatechartWhen:(SEL)selector
+- (SEL)transitionToErrorStateWhen:(SEL)selector
 {
     switch (RCSNumberOfArgumentsInSelector(selector))
     {
         case 2:
         {
-            IMP imp = imp_implementationWithBlock(^(id<RCSStatechart> _self, id<RCSStatechartContext> context, id _) {
+            IMP imp = imp_implementationWithBlock(^(id<RCSPushdownState> _self, id<RCSPushdownStateContext> context, id _) {
                 [_self logStateTransitionError:selector forContext:context];
-                id<RCSStatechart> errorStatechart = [_self errorStatechart];
-                if (errorStatechart) [_self transition:context to:errorStatechart];
+                id<RCSPushdownState> errorState = [_self errorState];
+                if (errorState) [_self transition:context to:errorState];
             });
             class_addMethod([self class], selector, imp, "v@:@@");
             break;
@@ -167,10 +167,10 @@ static NSUInteger RCSNumberOfArgumentsInSelector(SEL sel)
         case 1:
         default:
         {
-            IMP imp = imp_implementationWithBlock(^(id<RCSStatechart> _self, id<RCSStatechartContext> context) {
+            IMP imp = imp_implementationWithBlock(^(id<RCSPushdownState> _self, id<RCSPushdownStateContext> context) {
                 [_self logStateTransitionError:selector forContext:context];
-                id<RCSStatechart> errorStatechart = [_self errorStatechart];
-                if (errorStatechart) [_self transition:context to:errorStatechart];
+                id<RCSPushdownState> errorState = [_self errorState];
+                if (errorState) [_self transition:context to:errorState];
             });
             class_addMethod([self class], selector, imp, "v@:@");
             break;
@@ -189,35 +189,35 @@ static NSUInteger RCSNumberOfArgumentsInSelector(SEL sel)
     return [self _declareTransition:selector preAction:action transitionTo:nil postAction:(SEL)0];
 }
 
-- (SEL)when:(SEL)selector transitionTo:(id<RCSStatechart>)statechart
+- (SEL)when:(SEL)selector transitionTo:(id<RCSPushdownState>)state
 {
-    return [self _declareTransition:selector preAction:(SEL)0 transitionTo:statechart postAction:(SEL)0];
+    return [self _declareTransition:selector preAction:(SEL)0 transitionTo:state postAction:(SEL)0];
 }
 
-- (SEL)when:(SEL)selector transitionTo:(id<RCSStatechart>)statechart after:(SEL)action
+- (SEL)when:(SEL)selector transitionTo:(id<RCSPushdownState>)state after:(SEL)action
 {
-    return [self _declareTransition:selector preAction:action transitionTo:statechart postAction:(SEL)0];
+    return [self _declareTransition:selector preAction:action transitionTo:state postAction:(SEL)0];
 }
 
-- (SEL)when:(SEL)selector transitionTo:(id<RCSStatechart>)statechart before:(SEL)action
+- (SEL)when:(SEL)selector transitionTo:(id<RCSPushdownState>)state before:(SEL)action
 {
-    return [self _declareTransition:selector preAction:(SEL)0 transitionTo:statechart postAction:action];
+    return [self _declareTransition:selector preAction:(SEL)0 transitionTo:state postAction:action];
 }
 
-- (SEL)when:(SEL)selector transitionTo:(id<RCSStatechart>)statechart before:(SEL)postAction after:(SEL)preAction
+- (SEL)when:(SEL)selector transitionTo:(id<RCSPushdownState>)state before:(SEL)postAction after:(SEL)preAction
 {
-    return [self _declareTransition:selector preAction:preAction transitionTo:statechart postAction:postAction];
+    return [self _declareTransition:selector preAction:preAction transitionTo:state postAction:postAction];
 }
 
-- (SEL)_declareTransition:(SEL)selector preAction:(SEL)preAction transitionTo:(id<RCSStatechart>)statechart postAction:(SEL)postAction
+- (SEL)_declareTransition:(SEL)selector preAction:(SEL)preAction transitionTo:(id<RCSPushdownState>)state postAction:(SEL)postAction
 {
     switch (RCSNumberOfArgumentsInSelector(selector))
     {
         case 2:
         {
-            IMP imp = imp_implementationWithBlock(^(id<RCSStatechart> _self, id<RCSStatechartContext> context, id object) {
+            IMP imp = imp_implementationWithBlock(^(id<RCSPushdownState> _self, id<RCSPushdownStateContext> context, id object) {
                 if (preAction) objc_msgSend(context, preAction, object);
-                if (statechart) [_self transition:context to:statechart];
+                if (state) [_self transition:context to:state];
                 if (postAction) objc_msgSend(context, postAction, object);
             });
             class_addMethod([self class], selector, imp, "v@:@@");
@@ -226,9 +226,9 @@ static NSUInteger RCSNumberOfArgumentsInSelector(SEL sel)
         case 1:
         default:
         {
-            IMP imp = imp_implementationWithBlock(^(id<RCSStatechart> _self, id<RCSStatechartContext> context) {
+            IMP imp = imp_implementationWithBlock(^(id<RCSPushdownState> _self, id<RCSPushdownStateContext> context) {
                 if (preAction) objc_msgSend(context, preAction);
-                if (statechart) [_self transition:context to:statechart];
+                if (state) [_self transition:context to:state];
                 if (postAction) objc_msgSend(context, postAction);
             });
             class_addMethod([self class], selector, imp, "v@:@");
@@ -238,55 +238,55 @@ static NSUInteger RCSNumberOfArgumentsInSelector(SEL sel)
     return selector;
 }
 
-- (void)transition:(id<RCSStatechartContext>)context push:(id<RCSStatechart>)state
+- (void)transition:(id<RCSPushdownStateContext>)context push:(id<RCSPushdownState>)state
 {
     if ([self shouldLogTransitions])
     {
         NSLog(@"transition %@ push %@", context, [state displayName]);
     }
-    [context pushStatechart];
-    [context setStatechart:state];
+    [context pushState];
+    [context setState:state];
     [state enter:context];
 }
 
-- (void)pop:(id<RCSStatechartContext>)context
+- (void)pop:(id<RCSPushdownStateContext>)context
 {
-    id<RCSStatechart> state = [context popStatechart];
+    id<RCSPushdownState> state = [context popState];
     if ([self shouldLogTransitions])
     {
         NSLog(@"transition %@ pop %@", context, [state displayName]);
     }
-    [context setStatechart:state];
+    [context setState:state];
     [state enter:context];
 }
 
-- (SEL)when:(SEL)selector push:(id<RCSStatechart>)state
+- (SEL)when:(SEL)selector push:(id<RCSPushdownState>)state
 {
     return [self _declareTransition:selector preAction:(SEL)0 push:state postAction:(SEL)0];
 }
 
-- (SEL)when:(SEL)selector push:(id<RCSStatechart>)state after:(SEL)action
+- (SEL)when:(SEL)selector push:(id<RCSPushdownState>)state after:(SEL)action
 {
     return [self _declareTransition:selector preAction:action push:state postAction:(SEL)0];
 }
 
-- (SEL)when:(SEL)selector push:(id<RCSStatechart>)state before:(SEL)action
+- (SEL)when:(SEL)selector push:(id<RCSPushdownState>)state before:(SEL)action
 {
     return [self _declareTransition:selector preAction:(SEL)0 push:state postAction:action];
 }
 
-- (SEL)when:(SEL)selector push:(id<RCSStatechart>)state before:(SEL)postAction after:(SEL)preAction
+- (SEL)when:(SEL)selector push:(id<RCSPushdownState>)state before:(SEL)postAction after:(SEL)preAction
 {
     return [self _declareTransition:selector preAction:preAction push:state postAction:postAction];
 }
 
-- (SEL)_declareTransition:(SEL)selector preAction:(SEL)preAction push:(id<RCSStatechart>)state postAction:(SEL)postAction
+- (SEL)_declareTransition:(SEL)selector preAction:(SEL)preAction push:(id<RCSPushdownState>)state postAction:(SEL)postAction
 {
     switch (RCSNumberOfArgumentsInSelector(selector))
     {
         case 2:
         {
-            IMP imp = imp_implementationWithBlock(^(id<RCSStatechart> _self, id<RCSStatechartContext> context, id object) {
+            IMP imp = imp_implementationWithBlock(^(id<RCSPushdownState> _self, id<RCSPushdownStateContext> context, id object) {
                 if (preAction) objc_msgSend(context, preAction, object);
                 if (state) [_self transition:context push:state];
                 if (postAction) objc_msgSend(context, postAction, object);
@@ -297,7 +297,7 @@ static NSUInteger RCSNumberOfArgumentsInSelector(SEL sel)
         case 1:
         default:
         {
-            IMP imp = imp_implementationWithBlock(^(id<RCSStatechart> _self, id<RCSStatechartContext> context) {
+            IMP imp = imp_implementationWithBlock(^(id<RCSPushdownState> _self, id<RCSPushdownStateContext> context) {
                 if (preAction) objc_msgSend(context, preAction);
                 if (state) [_self transition:context push:state];
                 if (postAction) objc_msgSend(context, postAction);
@@ -335,7 +335,7 @@ static NSUInteger RCSNumberOfArgumentsInSelector(SEL sel)
     {
         case 2:
         {
-            IMP imp = imp_implementationWithBlock(^(id<RCSStatechart> _self, id<RCSStatechartContext> context, id object) {
+            IMP imp = imp_implementationWithBlock(^(id<RCSPushdownState> _self, id<RCSPushdownStateContext> context, id object) {
                 if (preAction) objc_msgSend(context, preAction, object);
                 [_self pop:context];
                 if (postAction) objc_msgSend(context, postAction, object);
@@ -346,7 +346,7 @@ static NSUInteger RCSNumberOfArgumentsInSelector(SEL sel)
         case 1:
         default:
         {
-            IMP imp = imp_implementationWithBlock(^(id<RCSStatechart> _self, id<RCSStatechartContext> context) {
+            IMP imp = imp_implementationWithBlock(^(id<RCSPushdownState> _self, id<RCSPushdownStateContext> context) {
                 if (preAction) objc_msgSend(context, preAction);
                 [_self pop:context];
                 if (postAction) objc_msgSend(context, postAction);

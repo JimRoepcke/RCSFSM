@@ -1,5 +1,5 @@
 //
-//  RCSStatechart.h
+//  RCSPushdownState.h
 //  RCSFSM
 //
 //  Created by Jim Roepcke on 2013-05-29.
@@ -8,62 +8,62 @@
 
 #import <Foundation/Foundation.h>
 
-@protocol RCSStatechart;
+@protocol RCSPushdownState;
 
-@protocol RCSStatechartContext <NSObject>
+@protocol RCSPushdownStateContext <NSObject>
 
-@property (nonatomic, weak) id<RCSStatechart> statechart;
+@property (nonatomic, weak) id<RCSPushdownState> state;
 
-- (void)_statechartContextDidEnterErrorStatechart;
+- (void)_stateContextDidEnterErrorState;
 
-- (id<RCSStatechart>)pushStatechart;
-- (id<RCSStatechart>)popStatechart;
+- (id<RCSPushdownState>)pushState;
+- (id<RCSPushdownState>)popState;
 
 @end
 
-@protocol RCSStatechart <NSObject>
+@protocol RCSPushdownState <NSObject>
 
 // access singleton instance
-+ (id<RCSStatechart>)statechart;
-- (id<RCSStatechart>)startStatechart;
++ (id<RCSPushdownState>)state;
+- (id<RCSPushdownState>)startState;
 
 - (NSString *)displayNameExcludedPrefix; // remove this prefix from the class name to derive the default displayName
 - (NSString *)displayName; // class name, sans prefix from displayNameExcludedPrefix
 
 - (BOOL)shouldLogTransitions; // returns NO by default
 
-- (BOOL)shouldTellContextDidEnterErrorStatechart; // returns YES by default
-- (id<RCSStatechart>)errorStatechart;
+- (BOOL)shouldTellContextDidEnterErrorState; // returns YES by default
+- (id<RCSPushdownState>)errorState;
 
 // called by transition:to: just after the context's state is set to this state
-- (void)enter:(id<RCSStatechartContext>)context;
+- (void)enter:(id<RCSPushdownStateContext>)context;
 
 // set's the context's state to the specified state, then calls -enter: on the specified state
-- (void)transition:(id<RCSStatechartContext>)context to:(id<RCSStatechart>)statechart;
+- (void)transition:(id<RCSPushdownStateContext>)context to:(id<RCSPushdownState>)state;
 
 // call this before transitioning to your FSM's Error state
-- (void)logStateTransitionError:(SEL)sel forContext:(id<RCSStatechartContext>)context;
+- (void)logStateTransitionError:(SEL)sel forContext:(id<RCSPushdownStateContext>)context;
 
-- (id<RCSStatechart>)statechartNamed:(NSString *)name;
-- (id<RCSStatechart>)declareErrorStatechart:(id<RCSStatechart>)errorStatechart;
-- (id<RCSStatechart>)declareStartStatechart:(id<RCSStatechart>)startStatechart;
+- (id<RCSPushdownState>)stateNamed:(NSString *)name;
+- (id<RCSPushdownState>)declareErrorState:(id<RCSPushdownState>)errorState;
+- (id<RCSPushdownState>)declareStartState:(id<RCSPushdownState>)startState;
 
-- (SEL)transitionToErrorStatechartWhen:(SEL)selector;
+- (SEL)transitionToErrorStateWhen:(SEL)selector;
 - (void)whenEnteringPerform:(SEL)action;
 - (SEL)doNothingWhen:(SEL)selector;
 - (SEL)when:(SEL)selector perform:(SEL)action;
-- (SEL)when:(SEL)selector transitionTo:(id<RCSStatechart>)statechart;
-- (SEL)when:(SEL)selector transitionTo:(id<RCSStatechart>)statechart after:(SEL)action;
-- (SEL)when:(SEL)selector transitionTo:(id<RCSStatechart>)statechart before:(SEL)action;
-- (SEL)when:(SEL)selector transitionTo:(id<RCSStatechart>)statechart before:(SEL)postAction after:(SEL)preAction;
+- (SEL)when:(SEL)selector transitionTo:(id<RCSPushdownState>)state;
+- (SEL)when:(SEL)selector transitionTo:(id<RCSPushdownState>)state after:(SEL)action;
+- (SEL)when:(SEL)selector transitionTo:(id<RCSPushdownState>)state before:(SEL)action;
+- (SEL)when:(SEL)selector transitionTo:(id<RCSPushdownState>)state before:(SEL)postAction after:(SEL)preAction;
 
-- (void)transition:(id<RCSStatechartContext>)context push:(id<RCSStatechart>)statechart;
-- (void)pop:(id<RCSStatechartContext>)context;
+- (void)transition:(id<RCSPushdownStateContext>)context push:(id<RCSPushdownState>)state;
+- (void)pop:(id<RCSPushdownStateContext>)context;
 
-- (SEL)when:(SEL)selector push:(id<RCSStatechart>)statechart;
-- (SEL)when:(SEL)selector push:(id<RCSStatechart>)statechart after:(SEL)action;
-- (SEL)when:(SEL)selector push:(id<RCSStatechart>)statechart before:(SEL)action;
-- (SEL)when:(SEL)selector push:(id<RCSStatechart>)statechart before:(SEL)postAction after:(SEL)preAction;
+- (SEL)when:(SEL)selector push:(id<RCSPushdownState>)state;
+- (SEL)when:(SEL)selector push:(id<RCSPushdownState>)state after:(SEL)action;
+- (SEL)when:(SEL)selector push:(id<RCSPushdownState>)state before:(SEL)action;
+- (SEL)when:(SEL)selector push:(id<RCSPushdownState>)state before:(SEL)postAction after:(SEL)preAction;
 
 - (SEL)popWhen:(SEL)selector;
 - (SEL)popWhen:(SEL)selector after:(SEL)action;
@@ -72,6 +72,6 @@
 
 @end
 
-@interface RCSBaseStatechart: NSObject <RCSStatechart>
+@interface RCSBasePushdownState: NSObject <RCSPushdownState>
 
 @end
