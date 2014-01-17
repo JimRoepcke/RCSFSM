@@ -8,7 +8,7 @@
 
 #import "RCSFSMTests.h"
 #import "RCSState.h"
-#import "RCSStatechart.h"
+#import "RCSPushdownState.h"
 
 @class TestContext;
 
