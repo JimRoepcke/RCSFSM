@@ -4,7 +4,7 @@
 //  See license below.
 //
 
-#import <Foundation/Foundation.h>
+@import Foundation;
 #import "RCSTask.h"
 
 @class RCSTaskQueue;

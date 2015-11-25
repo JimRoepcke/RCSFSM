@@ -6,8 +6,8 @@
 //  Copyright (c) 2013 Roepcke Computing Solutions. All rights reserved.
 //
 
-#import <objc/runtime.h>
-#import <objc/message.h>
+@import ObjectiveC.runtime;
+@import ObjectiveC.message;
 #import "RCSPushdownState.h"
 
 static NSUInteger RCSNumberOfArgumentsInSelector(SEL sel);

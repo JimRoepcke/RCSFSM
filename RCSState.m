@@ -4,8 +4,8 @@
 //  See license below.
 //
 
-#import <objc/runtime.h>
-#import <objc/message.h>
+@import ObjectiveC.runtime;
+@import ObjectiveC.message;
 #import "RCSState.h"
 
 static NSUInteger RCSNumberOfArgumentsInSelector(SEL sel);
