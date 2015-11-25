@@ -133,8 +133,8 @@ static NSUInteger RCSNumberOfArgumentsInSelector(SEL sel)
     {
         IMP imp = imp_implementationWithBlock(^(id<RCSState> _self, id<RCSStateContext> context) {
             struct objc_super objcSuper = {_self, [_self superclass]};
-            objc_msgSendSuper(&objcSuper, @selector(enter:), context);
-            objc_msgSend(context, action);
+            ((id (*)(struct objc_super *, SEL, id))objc_msgSendSuper)(&objcSuper, @selector(enter:), context);
+            ((id (*)(id, SEL))objc_msgSend)(context, action);
         });
         class_addMethod([self class], @selector(enter:), imp, "v@:@");
     }
@@ -206,9 +206,9 @@ static NSUInteger RCSNumberOfArgumentsInSelector(SEL sel)
         case 2:
         {
             IMP imp = imp_implementationWithBlock(^(id<RCSState> _self, id<RCSStateContext> context, id object) {
-                if (preAction) objc_msgSend(context, preAction, object);
+                if (preAction) ((id (*)(id, SEL, id))objc_msgSend)(context, preAction, object);
                 if (state) [_self transition:context to:state];
-                if (postAction) objc_msgSend(context, postAction, object);
+                if (postAction) ((id (*)(id, SEL, id))objc_msgSend)(context, postAction, object);
             });
             class_addMethod([self class], selector, imp, "v@:@@");
             break;
@@ -217,9 +217,9 @@ static NSUInteger RCSNumberOfArgumentsInSelector(SEL sel)
         default:
         {
             IMP imp = imp_implementationWithBlock(^(id<RCSState> _self, id<RCSStateContext> context) {
-                if (preAction) objc_msgSend(context, preAction);
+                if (preAction) ((id (*)(id, SEL))objc_msgSend)(context, preAction);
                 if (state) [_self transition:context to:state];
-                if (postAction) objc_msgSend(context, postAction);
+                if (postAction) ((id (*)(id, SEL))objc_msgSend)(context, postAction);
             });
             class_addMethod([self class], selector, imp, "v@:@");
             break;
