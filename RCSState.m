@@ -97,7 +97,7 @@ static NSUInteger RCSNumberOfArgumentsInSelector(SEL sel)
     Class stateClass = NSClassFromString(stateClassName);
     if (!stateClass)
     {
-        stateClass = objc_allocateClassPair([self class], [stateClassName cStringUsingEncoding:NSASCIIStringEncoding], 0);
+        stateClass = objc_allocateClassPair([self class], [stateClassName cStringUsingEncoding:NSUTF8StringEncoding], 0);
         objc_registerClassPair(stateClass);
     }
     return [stateClass state];

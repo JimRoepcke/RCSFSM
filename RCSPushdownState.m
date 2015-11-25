@@ -99,7 +99,7 @@ static NSUInteger RCSNumberOfArgumentsInSelector(SEL sel)
     Class statechartClass = NSClassFromString(statechartClassName);
     if (!statechartClass)
     {
-        statechartClass = objc_allocateClassPair([self class], [statechartClassName cStringUsingEncoding:NSASCIIStringEncoding], 0);
+        statechartClass = objc_allocateClassPair([self class], [statechartClassName cStringUsingEncoding:NSUTF8StringEncoding], 0);
         objc_registerClassPair(statechartClass);
     }
     return [statechartClass state];
